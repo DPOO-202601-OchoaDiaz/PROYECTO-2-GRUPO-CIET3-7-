@@ -2,6 +2,9 @@ package modelo;
 
 import java.util.ArrayList;
 import java.util.List;
+import modelo.InscripcionTorneo;
+import modelo.Torneo;
+import modelo.DiaSemana;
 
 import persistencia.PersistenciaSistema;
 
@@ -66,6 +69,9 @@ public class SistemasDulcesDados
         {
             persistencia.guardarUsuarios(usuarios);
             persistencia.guardarCafe(cafe);
+            persistencia.guardarTorneos(cafe.getTorneos());
+            List<Torneo> torneosGuardados = persistencia.cargarTorneos(cafe, usuarios);
+            cafe.setTorneos(torneosGuardados);
         }
     }
 
@@ -227,5 +233,69 @@ public class SistemasDulcesDados
 
     public List<SugerenciaPlatillo> getSugerencias() {
         return sugerencias;
+    }
+ // ── Torneos ───────────────────────────────────────────────────────────
+
+    public Torneo crearTorneoAmistoso(String nombre, DiaSemana dia,
+                                      JuegoMesa juego, int cupos, double bono)
+    {
+        if (!(sesionActual instanceof Administrador))
+        {
+            return null; // solo el administrador puede crear torneos
+        }
+        Administrador admin = (Administrador) sesionActual;
+        return admin.crearTorneoAmistoso(nombre, dia, juego, cupos, bono, cafe);
+    }
+
+    public Torneo crearTorneoCompetitivo(String nombre, DiaSemana dia,
+                                         JuegoMesa juego, int cupos, double tarifa)
+    {
+        if (!(sesionActual instanceof Administrador))
+        {
+            return null;
+        }
+        Administrador admin = (Administrador) sesionActual;
+        return admin.crearTorneoCompetitivo(nombre, dia, juego, cupos, tarifa, cafe);
+    }
+
+    public List<Torneo> consultarTorneos()
+    {
+        return cafe.getTorneos();
+    }
+
+    public List<Torneo> consultarTorneosDisponibles()
+    {
+        return cafe.consultarTorneosDisponibles();
+    }
+
+    public InscripcionTorneo inscribirEnTorneo(Torneo torneo, int numeroCupos)
+    {
+        if (sesionActual == null || torneo == null)
+        {
+            return null;
+        }
+        return torneo.inscribir(sesionActual, numeroCupos);
+    }
+
+    public boolean desinscribirDeTorneo(Torneo torneo)
+    {
+        if (sesionActual == null || torneo == null)
+        {
+            return false;
+        }
+        return torneo.desinscribir(sesionActual);
+    }
+
+    public boolean aplicarBonoATorneo(Venta venta)
+    {
+        if (sesionActual instanceof Cliente)
+        {
+            return ((Cliente) sesionActual).aplicarBonoAVenta(venta);
+        }
+        if (sesionActual instanceof Empleado)
+        {
+            return ((Empleado) sesionActual).aplicarBonoAVenta(venta);
+        }
+        return false;
     }
 }

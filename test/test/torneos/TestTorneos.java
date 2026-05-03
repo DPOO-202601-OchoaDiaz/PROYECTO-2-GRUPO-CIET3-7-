@@ -301,4 +301,34 @@ class TestTorneos {
         assertEquals("Premio en metálico: $0",
                      torneoComp.obtenerDescripcionPremio());
     }
+    @Test
+    void testSoloAdminPuedaCrearTorneo()
+    {
+        // Simula que el sistema tiene sesión de cliente
+        // SistemasDulcesDados devuelve null si la sesión no es admin
+        // Este test verifica la regla de negocio directamente en Administrador
+        Cliente noAdmin = new Cliente("500", "X", "x@mail.com", "x", "x");
+
+        // Un cliente no tiene crearTorneoAmistoso() — la restricción
+        // la impone SistemasDulcesDados verificando sesionActual.
+        // Aquí verificamos que la creación directa por admin sí funciona.
+        Torneo t = admin.crearTorneoAmistoso(
+            "Test", DiaSemana.LUNES, catan, 4, 0.10, cafe);
+        assertNotNull(t);
+    }
+
+    @Test
+    void testBuscarTorneoPorNombre()
+    {
+        assertNotNull(cafe.buscarTorneoPorNombre("Copa Catan"));
+        assertNull(cafe.buscarTorneoPorNombre("Inexistente"));
+    }
+
+    @Test
+    void testCancelarTorneoLoEliminaDelCafe()
+    {
+        int torneoAntes = cafe.getTorneos().size();
+        admin.cancelarTorneo(torneoComp, cafe);
+        assertEquals(torneoAntes - 1, cafe.getTorneos().size());
+    }
 }

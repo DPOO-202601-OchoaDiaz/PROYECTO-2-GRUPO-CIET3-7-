@@ -7,6 +7,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import modelo.DiaSemana;
+import modelo.InscripcionTorneo;
+import modelo.Torneo;
+import modelo.TorneoAmistoso;
+import modelo.TorneoCompetitivo;
 
 
 public class PersistenciaSistema
@@ -1634,5 +1639,109 @@ public class PersistenciaSistema
         this.rutaDatos = rutaDatos;
         crearCarpetaSiNoExiste();
         invalidarCache();
+    }
+ // ── Torneos ───────────────────────────────────────────────────────────
+
+    public void guardarTorneos(List<Torneo> torneos)
+    {
+        try (FileWriter fw = crear("torneos.txt"))
+        {
+            for (Torneo t : torneos)
+            {
+                String tipo = (t instanceof TorneoCompetitivo) ? "COMPETITIVO" : "AMISTOSO";
+                String extra;
+                if (t instanceof TorneoCompetitivo)
+                {
+                    extra = String.valueOf(((TorneoCompetitivo) t).getTarifaEntrada());
+                }
+                else
+                {
+                    extra = String.valueOf(((TorneoAmistoso) t).getBonoDescuento());
+                }
+
+                fw.write(tipo + "|" + t.getNombre() + "|" + t.getDia()
+                         + "|" + t.getJuego().getNombre()
+                         + "|" + t.getCuposTotales() + "|" + extra + "\n");
+
+                for (InscripcionTorneo ins : t.getInscripciones())
+                {
+                    fw.write("INS|" + ins.getUsuario().getLogin()
+                             + "|" + ins.getNumeroCupos()
+                             + "|" + ins.isUsoCupoFanatico() + "\n");
+                }
+            }
+        }
+        catch (IOException e)
+        {
+            System.err.println("Error guardando torneos: " + e.getMessage());
+        }
+    }
+
+    public List<Torneo> cargarTorneos(Cafe cafe, List<Usuario> usuarios)
+    {
+        List<Torneo> torneos = new ArrayList<>();
+        File archivo = path("torneos.txt");
+
+        if (!archivo.exists())
+        {
+            return torneos;
+        }
+
+        try (BufferedReader br = abrir(archivo))
+        {
+            String linea;
+            Torneo torneoActual = null;
+
+            while ((linea = br.readLine()) != null)
+            {
+                String[] partes = linea.split("\\|");
+
+                if (partes[0].equals("AMISTOSO"))
+                {
+                    JuegoMesa juego = cafe.buscarJuegoMesaPorNombre(partes[3]);
+                    DiaSemana dia   = DiaSemana.valueOf(partes[2]);
+                    int cupos       = Integer.parseInt(partes[4]);
+                    double bono     = Double.parseDouble(partes[5]);
+                    torneoActual    = new TorneoAmistoso(partes[1], dia, juego, cupos, bono);
+                    torneos.add(torneoActual);
+                }
+                else if (partes[0].equals("COMPETITIVO"))
+                {
+                    JuegoMesa juego = cafe.buscarJuegoMesaPorNombre(partes[3]);
+                    DiaSemana dia   = DiaSemana.valueOf(partes[2]);
+                    int cupos       = Integer.parseInt(partes[4]);
+                    double tarifa   = Double.parseDouble(partes[5]);
+                    torneoActual    = new TorneoCompetitivo(partes[1], dia, juego, cupos, tarifa);
+                    torneos.add(torneoActual);
+                }
+                else if (partes[0].equals("INS") && torneoActual != null)
+                {
+                    // Buscar el usuario en la lista recibida como parámetro
+                    Usuario usuario = null;
+                    for (Usuario u : usuarios)
+                    {
+                        if (u.getLogin().equals(partes[1]))
+                        {
+                            usuario = u;
+                            break;
+                        }
+                    }
+
+                    if (usuario != null)
+                    {
+                        int numeroCupos    = Integer.parseInt(partes[2]);
+                        boolean esFanatico = Boolean.parseBoolean(partes[3]);
+                        torneoActual.getInscripciones().add(
+                            new InscripcionTorneo(usuario, numeroCupos, esFanatico));
+                    }
+                }
+            }
+        }
+        catch (IOException e)
+        {
+            System.err.println("Error cargando torneos: " + e.getMessage());
+        }
+
+        return torneos;
     }
 }
