@@ -38,7 +38,7 @@ public class ValidadorEntradaConsola
             }
             catch (NumberFormatException e)
             {
-               
+                // Se maneja con mensaje de error abajo
             }
             System.out.println("Número inválido. Debe estar entre " + minimo + " y " + maximo + ".");
         }
@@ -60,7 +60,7 @@ public class ValidadorEntradaConsola
             }
             catch (NumberFormatException e)
             {
-                
+                // Se maneja con mensaje de error abajo
             }
             System.out.println("Valor inválido. Debe ser un número positivo.");
         }

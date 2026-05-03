@@ -72,3 +72,44 @@ ESTRUCTURA DEL PROYECTO
 modelo     -> lógica del sistema
 ui         -> consola y pruebas
 datos      -> archivos de persistencia
+
+# Manual básico de uso (consola)
+
+## Inicio
+Cada rol tiene su clase principal:
+- `ui.MainAdministrador`
+- `ui.MainCliente`
+- `ui.MainEmpleado`
+
+Al iniciar, el sistema carga automáticamente la información desde `src/datos`.
+Al salir, guarda automáticamente usuarios y torneos.
+
+## Flujo Administrador
+1. Iniciar sesión con credenciales de administrador.
+2. Opciones disponibles:
+   - Crear torneo amistoso.
+   - Crear torneo competitivo.
+   - Registrar cliente.
+   - Registrar empleado (Mesero/Cocinero).
+   - Listar torneos.
+   - Listar usuarios.
+
+## Flujo Cliente
+1. Elegir entre iniciar sesión o registrarse.
+2. Si se registra, crear cuenta con documento, nombre, correo, login y password.
+3. Opciones disponibles:
+   - Consultar torneos disponibles.
+   - Inscribirse a torneo (1 a 3 cupos).
+   - Desinscribirse de torneo.
+
+## Flujo Empleado
+1. Iniciar sesión con usuario de tipo empleado.
+2. Opciones disponibles:
+   - Consultar torneos disponibles.
+   - Inscribirse a torneo (1 cupo).
+
+## Validación de entradas
+Todas las opciones numéricas y campos obligatorios pasan por validaciones para:
+- Evitar valores vacíos.
+- Controlar rangos de menú.
+- Asegurar números válidos.

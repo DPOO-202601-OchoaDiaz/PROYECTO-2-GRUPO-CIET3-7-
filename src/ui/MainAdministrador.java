@@ -6,8 +6,11 @@ import java.util.Scanner;
 import modelo.Administrador;
 import modelo.Cafe;
 import modelo.Cliente;
+import modelo.Cocinero;
 import modelo.DiaSemana;
+import modelo.Empleado;
 import modelo.JuegoMesa;
+import modelo.Mesero;
 import modelo.SistemasDulcesDados;
 import modelo.Torneo;
 import modelo.Usuario;
@@ -25,6 +28,7 @@ public class MainAdministrador
         {
             if (!iniciarSesionComoAdministrador(scanner, sistema))
             {
+                System.out.println("Credenciales inválidas o rol no autorizado.");
                 return;
             }
 
@@ -34,11 +38,13 @@ public class MainAdministrador
                 System.out.println("\n=== MENÚ ADMINISTRADOR ===");
                 System.out.println("1. Crear torneo amistoso");
                 System.out.println("2. Crear torneo competitivo");
-                System.out.println("3. Registrar empleado (cliente temporal por ahora)");
-                System.out.println("4. Listar torneos");
-                System.out.println("0. Salir");
+                System.out.println("3. Registrar cliente");
+                System.out.println("4. Registrar empleado");
+                System.out.println("5. Listar torneos");
+                System.out.println("6. Listar usuarios");
+                System.out.println("0. Cerrar sesión");
 
-                int opcion = ValidadorEntradaConsola.leerEnteroEnRango(scanner, "Seleccione opción: ", 0, 4);
+                int opcion = ValidadorEntradaConsola.leerEnteroEnRango(scanner, "Seleccione opción: ", 0, 6);
                 switch (opcion)
                 {
                     case 1:
@@ -51,7 +57,13 @@ public class MainAdministrador
                         registrarCliente(scanner, sistema);
                         break;
                     case 4:
+                        registrarEmpleado(scanner, sistema);
+                        break;
+                    case 5:
                         listarTorneos(sistema);
+                        break;
+                    case 6:
+                        listarUsuarios(sistema);
                         break;
                     case 0:
                         continuar = false;
@@ -73,12 +85,7 @@ public class MainAdministrador
         String login = ValidadorEntradaConsola.leerTextoNoVacio(scanner, "Login admin: ");
         String password = ValidadorEntradaConsola.leerTextoNoVacio(scanner, "Password: ");
         Usuario usuario = sistema.autenticarUsuario(login, password);
-        if (!(usuario instanceof Administrador))
-        {
-            System.out.println("Credenciales inválidas o rol no autorizado.");
-            return false;
-        }
-        return true;
+        return usuario instanceof Administrador;
     }
 
     private static void crearTorneo(Scanner scanner, SistemasDulcesDados sistema, boolean amistoso)
@@ -108,7 +115,25 @@ public class MainAdministrador
         String pass = ValidadorEntradaConsola.leerTextoNoVacio(scanner, "Password: ");
 
         boolean agregado = sistema.agregarUsuario(new Cliente(doc, nombre, correo, login, pass));
-        System.out.println(agregado ? "Usuario registrado." : "No se pudo registrar (login duplicado). ");
+        System.out.println(agregado ? "Cliente registrado." : "No se pudo registrar (login duplicado). ");
+    }
+
+    private static void registrarEmpleado(Scanner scanner, SistemasDulcesDados sistema)
+    {
+        int tipo = ValidadorEntradaConsola.leerEnteroEnRango(scanner, "Tipo empleado (1=Mesero, 2=Cocinero): ", 1, 2);
+        String doc = ValidadorEntradaConsola.leerTextoNoVacio(scanner, "Documento: ");
+        String nombre = ValidadorEntradaConsola.leerTextoNoVacio(scanner, "Nombre: ");
+        String correo = ValidadorEntradaConsola.leerTextoNoVacio(scanner, "Correo: ");
+        String login = ValidadorEntradaConsola.leerTextoNoVacio(scanner, "Login: ");
+        String pass = ValidadorEntradaConsola.leerTextoNoVacio(scanner, "Password: ");
+        String codigo = ValidadorEntradaConsola.leerTextoNoVacio(scanner, "Código empleado: ");
+
+        Empleado empleado = tipo == 1
+            ? new Mesero(doc, nombre, correo, login, pass, codigo)
+            : new Cocinero(doc, nombre, correo, login, pass, codigo);
+
+        boolean agregado = sistema.agregarUsuario(empleado);
+        System.out.println(agregado ? "Empleado registrado." : "No se pudo registrar (login duplicado). ");
     }
 
     private static void listarTorneos(SistemasDulcesDados sistema)
@@ -123,6 +148,20 @@ public class MainAdministrador
         {
             Torneo t = torneos.get(i);
             System.out.println((i + 1) + ". " + t.getNombre() + " | Día: " + t.getDia() + " | Cupos disp.: " + t.getTotalCuposDisponibles());
+        }
+    }
+
+    private static void listarUsuarios(SistemasDulcesDados sistema)
+    {
+        List<Usuario> usuarios = sistema.getUsuarios();
+        if (usuarios.isEmpty())
+        {
+            System.out.println("No hay usuarios registrados.");
+            return;
+        }
+        for (Usuario u : usuarios)
+        {
+            System.out.println("- " + u.getNombre() + " (" + u.getClass().getSimpleName() + ") | login: " + u.getLogin());
         }
     }
 }

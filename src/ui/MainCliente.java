@@ -44,13 +44,15 @@ public class MainCliente
 
         if (!iniciarSesion(scanner, sistema))
         {
+            System.out.println("Credenciales inválidas o usuario no es cliente.");
             return;
         }
 
         boolean continuar = true;
         while (continuar)
         {
-            System.out.println("\n1. Consultar torneos");
+            System.out.println("\n=== MENÚ CLIENTE ===");
+            System.out.println("1. Consultar torneos");
             System.out.println("2. Inscribirse a torneo");
             System.out.println("3. Desinscribirse de torneo");
             System.out.println("0. Salir");
@@ -85,7 +87,7 @@ public class MainCliente
         String pass = ValidadorEntradaConsola.leerTextoNoVacio(scanner, "Password: ");
 
         boolean agregado = sistema.agregarUsuario(new Cliente(doc, nombre, correo, login, pass));
-        System.out.println(agregado ? "Registro exitoso." : "No se pudo registrar.");
+        System.out.println(agregado ? "Registro exitoso." : "No se pudo registrar (login duplicado).");
     }
 
     private static boolean iniciarSesion(Scanner scanner, SistemasDulcesDados sistema)
@@ -99,14 +101,16 @@ public class MainCliente
     private static void listarTorneos(SistemasDulcesDados sistema)
     {
         List<Torneo> torneos = sistema.consultarTorneosDisponibles();
-        for (int i = 0; i < torneos.size(); i++)
-        {
-            Torneo t = torneos.get(i);
-            System.out.println((i + 1) + ". " + t.getNombre() + " (cupos: " + t.getTotalCuposDisponibles() + ")");
-        }
         if (torneos.isEmpty())
         {
             System.out.println("No hay torneos disponibles.");
+            return;
+        }
+
+        for (int i = 0; i < torneos.size(); i++)
+        {
+            Torneo t = torneos.get(i);
+            System.out.println((i + 1) + ". " + t.getNombre() + " (día: " + t.getDia() + ", cupos: " + t.getTotalCuposDisponibles() + ")");
         }
     }
 
@@ -133,7 +137,13 @@ public class MainCliente
             System.out.println("No hay torneos.");
             return;
         }
-        listarTorneos(sistema);
+
+        for (int i = 0; i < torneos.size(); i++)
+        {
+            Torneo t = torneos.get(i);
+            System.out.println((i + 1) + ". " + t.getNombre() + " (día: " + t.getDia() + ")");
+        }
+
         int indice = ValidadorEntradaConsola.leerEnteroEnRango(scanner, "Seleccione torneo: ", 1, torneos.size()) - 1;
         boolean ok = sistema.desinscribirDeTorneo(torneos.get(indice));
         System.out.println(ok ? "Desinscripción exitosa." : "No estabas inscrito o la operación falló.");
