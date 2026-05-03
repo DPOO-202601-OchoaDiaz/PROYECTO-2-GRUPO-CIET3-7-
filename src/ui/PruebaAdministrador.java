@@ -1,20 +1,25 @@
 package ui;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import modelo.Administrador;
 import modelo.Bebida;
 import modelo.Cafe;
 import modelo.CategoriaJuego;
+import modelo.Cliente;
 import modelo.CopiaJuegoPrestamo;
+import modelo.DiaSemana;
 import modelo.EstadoJuego;
+import modelo.InscripcionTorneo;
 import modelo.ItemVenta;
 import modelo.JuegoMesa;
 import modelo.JuegoVenta;
 import modelo.Pasteleria;
 import modelo.ProductoMenu;
 import modelo.TipoVenta;
+import modelo.Torneo;
 import modelo.Venta;
 
 public class PruebaAdministrador
@@ -147,9 +152,56 @@ public class PruebaAdministrador
             totalGeneral += v.calcularTotal();
         }
         System.out.println("\nTotal acumulado (general): $" + (int) totalGeneral);
+        
+        
+     // ── Verificación del ciclo completo de premios ────────────────────────
+
+        System.out.println("\n--- Ciclo completo de premios ---");
+
+        // Crear juego y copias
+        JuegoMesa ajedrez = new JuegoMesa("Ajedrez", 1475, "FIDE", 2, 2, 6, false,
+                                           CategoriaJuego.TABLERO);
+        ajedrez.agregarCopia(new CopiaJuegoPrestamo(EstadoJuego.NUEVO, true, ajedrez));
+        ajedrez.agregarCopia(new CopiaJuegoPrestamo(EstadoJuego.NUEVO, true, ajedrez));
+        cafe.agregarJuegoCatalogo(ajedrez);
+
+        // Admin crea un torneo amistoso (bono 20%)
+        Torneo torneoAjedrez = admin.crearTorneoAmistoso(
+            "Copa Ajedrez", DiaSemana.SABADO, ajedrez, 4, 0.20, cafe);
+
+        System.out.println("Torneo creado: " + (torneoAjedrez != null ? "OK" : "FALLÓ"));
+        System.out.println("Premio: " + torneoAjedrez.obtenerDescripcionPremio());
+
+        // Cliente se inscribe
+        Cliente jugador = new Cliente("202", "Laura", "laura@mail.com", "laura", "1234");
+        InscripcionTorneo ins = torneoAjedrez.inscribir(jugador, 1);
+        System.out.println("Inscripción: " + (ins != null ? "OK" : "FALLÓ"));
+        System.out.println("Cupos disponibles tras inscripción: "
+                           + torneoAjedrez.getTotalCuposDisponibles());
+
+        // El jugador gana el torneo
+        torneoAjedrez.otorgarPremio(jugador);
+        System.out.println("¿Tiene bono activo? " + jugador.tieneBonoActivo());
+        System.out.println("Bono ganado: " + (int)(jugador.getBonoDescuentoGanado() * 100) + "%");
+
+        // El jugador usa el bono en una compra
+        Bebida jugo = new Bebida("Jugo", 8000, true, false, false);
+        List<ItemVenta> items = new ArrayList<>();
+        items.add(new ItemVenta(1, jugo.getPrecio(), jugo));
+        Venta compra = jugador.comprarProductos(items, 0);
+        compra.setTipoVenta(TipoVenta.CAFETERIA);
+
+        System.out.println("Subtotal antes de bono: $" + (int) compra.calcularSubtotal());
+        boolean bonoAplicado = jugador.aplicarBonoAVenta(compra);
+        System.out.println("¿Bono aplicado? " + bonoAplicado);
+        System.out.println("Total con descuento 20%: $" + (int) compra.calcularTotal());
+        System.out.println("¿Bono consumido? " + !jugador.tieneBonoActivo());
+        
 
         System.out.println("\n=================================");
         System.out.println("   FIN PRUEBA DE ADMINISTRADOR");
         System.out.println("=================================");
+        
     }
+
 }

@@ -9,7 +9,7 @@ public abstract class Empleado extends Usuario {
     private List<Turno> turnos;
     private List<SolicitudCambioTurno> solicitudesCambioTurno;
     private List<JuegoMesa> juegosFavoritos;
-
+    private double bonoDescuentoGanado; // 0.0 si no tiene bono activo
     public Empleado(String documentoIdentidad, String nombre, String correoElectronico, String login, String password, String codigoEmpleado)
     {
         super(documentoIdentidad, nombre, correoElectronico, login, password);
@@ -18,6 +18,7 @@ public abstract class Empleado extends Usuario {
         this.turnos = new ArrayList<Turno>();
         this.solicitudesCambioTurno = new ArrayList<SolicitudCambioTurno>();
         this.juegosFavoritos = new ArrayList<JuegoMesa>();
+        this.bonoDescuentoGanado = 0;
     }
 
     public List<Turno> consultarTurnos()
@@ -53,6 +54,47 @@ public abstract class Empleado extends Usuario {
     public double obtenerDescuentoEmpleado()
     {
         return 0.20;
+        
+    }
+    
+    public void recibirBonoDescuento(double porcentaje)
+    {
+        // El bono no es acumulable: solo se guarda si no hay uno activo
+        if (bonoDescuentoGanado == 0)
+        {
+            bonoDescuentoGanado = porcentaje;
+        }
+    }
+
+    public boolean tieneBonoActivo()
+    {
+        return bonoDescuentoGanado > 0;
+    }
+
+    public double usarBonoDescuento()
+    {
+        double bono = bonoDescuentoGanado;
+        bonoDescuentoGanado = 0; // se consume al usarse
+        return bono;
+    }
+
+    public double getBonoDescuentoGanado()             { return bonoDescuentoGanado; }
+    public void   setBonoDescuentoGanado(double bono)  { this.bonoDescuentoGanado = bono; }
+    
+    /**
+     * Aplica el bono de descuento ganado en un torneo amistoso a una venta.
+     * El bono se consume al aplicarse — no es acumulable.
+     */
+    public boolean aplicarBonoAVenta(Venta venta)
+    {
+        if (venta == null || !tieneBonoActivo())
+        {
+            return false;
+        }
+
+        double porcentaje = usarBonoDescuento();
+        venta.aplicarDescuentoPorcentaje(porcentaje);
+        return true;
     }
 
     public SugerenciaPlatillo crearSugerenciaPlatillo(String nombre, CategoriaPropuesta categoria)

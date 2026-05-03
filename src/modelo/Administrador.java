@@ -253,4 +253,70 @@ public class Administrador extends Usuario {
     {
         return generarInformeVentas(granularidad, null, cafe);
     }
+    
+ // ── Gestión de torneos ────────────────────────────────────────────────
+
+    /**
+     * Crea un torneo amistoso y lo registra en el café.
+     * Retorna null si los cupos superan la capacidad real del juego
+     * según las copias disponibles.
+     *
+     * @param nombre        nombre del torneo
+     * @param dia           día de la semana en que se realiza
+     * @param juego         juego que se usará
+     * @param cuposTotales  número de participantes
+     * @param bonoDescuento porcentaje de descuento para el ganador (ej: 0.15 = 15%)
+     * @param cafe          referencia al café para validar y registrar
+     */
+    public Torneo crearTorneoAmistoso(String nombre, DiaSemana dia, JuegoMesa juego,
+                                      int cuposTotales, double bonoDescuento, Cafe cafe)
+    {
+        if (!cafe.validarCreacionTorneo(juego, cuposTotales))
+        {
+            return null;
+        }
+
+        TorneoAmistoso torneo = new TorneoAmistoso(nombre, dia, juego,
+                                                   cuposTotales, bonoDescuento);
+        cafe.agregarTorneo(torneo);
+        return torneo;
+    }
+
+    /**
+     * Crea un torneo competitivo y lo registra en el café.
+     * Retorna null si los cupos superan la capacidad real del juego
+     * según las copias disponibles.
+     *
+     * @param nombre        nombre del torneo
+     * @param dia           día de la semana en que se realiza
+     * @param juego         juego que se usará
+     * @param cuposTotales  número de participantes
+     * @param tarifaEntrada costo de inscripción por participante (clientes)
+     * @param cafe          referencia al café para validar y registrar
+     */
+    public Torneo crearTorneoCompetitivo(String nombre, DiaSemana dia, JuegoMesa juego,
+                                         int cuposTotales, double tarifaEntrada, Cafe cafe)
+    {
+        if (!cafe.validarCreacionTorneo(juego, cuposTotales))
+        {
+            return null;
+        }
+
+        TorneoCompetitivo torneo = new TorneoCompetitivo(nombre, dia, juego,
+                                                         cuposTotales, tarifaEntrada);
+        cafe.agregarTorneo(torneo);
+        return torneo;
+    }
+
+    /**
+     * Elimina un torneo del café.
+     * Útil si el administrador decide cancelarlo.
+     */
+    public void cancelarTorneo(Torneo torneo, Cafe cafe)
+    {
+        if (torneo != null && cafe != null)
+        {
+            cafe.eliminarTorneo(torneo);
+        }
+    }
 }

@@ -6,12 +6,16 @@ import java.util.List;
 public class Cliente extends Usuario {
 	private int puntosFidelidad;
     private List<JuegoMesa> juegosFavoritos;
+    private double bonoDescuentoGanado; // 0.0 si no tiene bono activo
+    private double premioMonetarioPendiente; // monto ganado en torneo competitivo
 
     public Cliente(String documentoIdentidad, String nombre, String correoElectronico, String login, String password)
     {
         super(documentoIdentidad, nombre, correoElectronico, login, password);
         this.puntosFidelidad = 0;
         this.juegosFavoritos = new ArrayList<JuegoMesa>();
+        this.bonoDescuentoGanado        = 0;
+        this.premioMonetarioPendiente   = 0;
     }
 
     public ReservaMesa crearReserva(Mesa mesa, String fechaHora, int numeroPersonas, boolean hayNinosMenores5, boolean hayMenoresEdad)
@@ -45,9 +49,40 @@ public class Cliente extends Usuario {
         return venta;
     }
 
-    public void aplicarCodigoDescuento(String codigo)
+    /**
+     * Aplica el bono de descuento ganado en un torneo amistoso a una venta.
+     * El bono se consume al aplicarse — no es acumulable.
+     * Retorna true si había bono activo y se aplicó, false si no había ninguno.
+     */
+    public boolean aplicarBonoAVenta(Venta venta)
     {
-    	// No se pudo implementar aún
+        if (venta == null || !tieneBonoActivo())
+        {
+            return false;
+        }
+
+        double porcentaje = usarBonoDescuento(); // obtiene y pone en 0
+        venta.aplicarDescuentoPorcentaje(porcentaje);
+        return true;
+    }
+
+    /**
+     * Reemplaza el stub anterior.
+     * Permite aplicar el bono usando un código de descuento de empleado
+     * o el bono ganado en torneo. En esta entrega solo aplica el bono
+     * de torneo si el código coincide con "BONO_TORNEO".
+     */
+    public void aplicarCodigoDescuento(String codigo, Venta venta)
+    {
+        if (codigo == null || venta == null)
+        {
+            return;
+        }
+
+        if (codigo.equalsIgnoreCase("BONO_TORNEO") && tieneBonoActivo())
+        {
+            aplicarBonoAVenta(venta);
+        }
     }
 
     public void usarPuntosFidelidad(double valor)
@@ -59,6 +94,38 @@ public class Cliente extends Usuario {
     {
         puntosFidelidad += (int) valorCompra;
     }
+
+    public void recibirBonoDescuento(double porcentaje)
+    {
+        // El bono no es acumulable: solo se guarda si no hay uno activo
+        if (bonoDescuentoGanado == 0)
+        {
+            bonoDescuentoGanado = porcentaje;
+        }
+    }
+
+    public boolean tieneBonoActivo()
+    {
+        return bonoDescuentoGanado > 0;
+    }
+
+    public double usarBonoDescuento()
+    {
+        double bono = bonoDescuentoGanado;
+        bonoDescuentoGanado = 0; // se consume al usarse
+        return bono;
+    }
+
+    public void registrarPremioMonetario(double monto)
+    {
+        premioMonetarioPendiente += monto;
+    }
+
+    public double getPremioMonetarioPendiente()        { return premioMonetarioPendiente; }
+    public void   setPremioMonetarioPendiente(double m){ this.premioMonetarioPendiente = m; }
+
+    public double getBonoDescuentoGanado()             { return bonoDescuentoGanado; }
+    public void   setBonoDescuentoGanado(double bono)  { this.bonoDescuentoGanado = bono; }
 
     public int consultarPuntosFidelidad()
     {

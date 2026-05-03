@@ -13,6 +13,7 @@ public class Cafe {
     private List<ProductoMenu> menu;
     private List<Venta> ventas;
     private List<Prestamo> prestamos;
+    private List<Torneo> torneos;
 
     public Cafe(int capacidadMaximaClientes)
     {
@@ -24,6 +25,7 @@ public class Cafe {
         this.menu = new ArrayList<ProductoMenu>();
         this.ventas = new ArrayList<Venta>();
         this.prestamos = new ArrayList<Prestamo>();
+        this.torneos = new ArrayList<Torneo>();
     }
     
     public int calcularPersonasActuales() {
@@ -135,7 +137,85 @@ public class Cafe {
             prestamos.add(prestamo);
         }
     }
+    
+ // ── Gestión de torneos ────────────────────────────────────────────────
 
+    /**
+     * Valida si es posible crear un torneo con el número de participantes
+     * indicado. La validación principal: las copias disponibles del juego
+     * deben alcanzar para todos los participantes simultáneos.
+     *
+     * Regla del enunciado: el número de participantes puede superar el
+     * máximo de jugadores del juego, siempre que haya copias suficientes.
+     * Ejemplo: Catan (max 4 jugadores) con 3 copias disponibles admite
+     * hasta 12 participantes en el torneo (4 x 3).
+     */
+    public boolean validarCreacionTorneo(JuegoMesa juego, int cuposTotales)
+    {
+        if (juego == null || cuposTotales <= 0)
+        {
+            return false;
+        }
+
+        int copiasDisponibles = juego.obtenerCopiasDisponibles().size();
+
+        if (copiasDisponibles == 0)
+        {
+            return false;
+        }
+
+        int capacidadTotal = juego.getMaxJugadores() * copiasDisponibles;
+        return cuposTotales <= capacidadTotal;
+    }
+
+    public void agregarTorneo(Torneo torneo)
+    {
+        if (torneo != null)
+        {
+            torneos.add(torneo);
+        }
+    }
+
+    public void eliminarTorneo(Torneo torneo)
+    {
+        torneos.remove(torneo);
+    }
+
+    public List<Torneo> getTorneos()
+    {
+        return torneos;
+    }
+
+    public void setTorneos(List<Torneo> torneos)
+    {
+        this.torneos = torneos;
+    }
+
+    public List<Torneo> consultarTorneosDisponibles()
+    {
+        List<Torneo> disponibles = new ArrayList<Torneo>();
+        for (Torneo torneo : torneos)
+        {
+            if (!torneo.estaLleno())
+            {
+                disponibles.add(torneo);
+            }
+        }
+        return disponibles;
+    }
+
+    public Torneo buscarTorneoPorNombre(String nombre)
+    {
+        for (Torneo torneo : torneos)
+        {
+            if (torneo.getNombre().equalsIgnoreCase(nombre))
+            {
+                return torneo;
+            }
+        }
+        return null;
+    }
+    
     public boolean hayClientesPorAtender()
     {
         for (Mesa mesa : mesas)
